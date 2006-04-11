@@ -52,5 +52,18 @@ TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 #any tests you can comment out or delete the following line.
 # ADD_TEST(Testname ExecutableToRun arg1 arg2 arg3)
 
-ADD_TEST(Run check ${INPUT_IMAGE} out.png)
-ADD_TEST(CompareImage ${IMAGE_COMPARE} out.png ${CMAKE_SOURCE_DIR}/images/test.png)
+SET(RADS 1 2 3 4 5 6 7 8 9 10 11 12 13)
+
+FOREACH(NUM ${RADS})
+SET(TNAME dil1D_${NUM})
+SET(CNAME checkdil1D_${NUM})
+
+SET(BNAME outB_${NUM}.png)
+SET(VNAME outVH_${NUM}.png)
+
+ADD_TEST(${TNAME} dilate1D ${INPUT_IMAGE} ${VNAME} ${BNAME} ${NUM})
+ADD_TEST(${CNAME} ${IMAGE_COMPARE} ${VNAME} ${BNAME})
+ENDFOREACH(NUM)
+
+#ADD_TEST(Run check ${INPUT_IMAGE} out.png)
+#ADD_TEST(CompareImage ${IMAGE_COMPARE} out.png ${CMAKE_SOURCE_DIR}/images/test.png)

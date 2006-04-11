@@ -73,6 +73,12 @@ public:
   itkSetMacro(KernelLength, int);
   itkGetConstReferenceMacro(KernelLength, int);
 
+  /**
+   *  Set/Get for kernel orientation
+   */
+  itkSetMacro(Direction, int);
+  itkGetConstReferenceMacro(Direction, int);
+
 protected:
   vanHerkGilWermanBaseImageFilter();
   ~vanHerkGilWermanBaseImageFilter() {};
@@ -95,6 +101,7 @@ private:
   typename TInputImage::PixelType m_BoundaryValue;
   // the kernel size - must be odd
   int m_KernelLength;
+  int m_Direction;
 
   typedef typename OutputImageType::IndexType OutIndexType;
   typedef typename InputImageType::IndexType InIndexType;

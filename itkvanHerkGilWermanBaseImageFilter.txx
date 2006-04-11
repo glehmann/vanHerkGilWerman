@@ -16,6 +16,7 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
 ::vanHerkGilWermanBaseImageFilter()
 {
   m_KernelLength=3;
+  m_Direction = 0;
 }
 
 template <class TInputImage, class TOutputImage, class TFunction1>
@@ -207,7 +208,7 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
   // create a vector of offsets defining the lines along which we will
   // operate
   InOffsetVecType Offsets;
-  int direction = 0;
+  int direction = m_Direction;
   mkOffsets(direction, Offsets);
 
   // we want to make the size of the running extrema buffers
@@ -251,25 +252,11 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
 
     for (int i = 0, j=m_KernelLength/2;i < Offsets.size(); i++, j++)
       {
-//       if (j > (ForwardRunningExt.size() - 1)) 
-// 	{
-// 	std::cout << "lengths are wrong " << std::endl;
-// 	}
       output->SetPixel(start + Offsets[i], Extreme(ForwardRunningExt[j], BackwardRunningExt[j]));
       }
 
-//     for (int i = 0;i<runningBufSize;i++) 
-//       {
-//       std::cout << std::setprecision(5)  << i << " :       " << (int)ForwardRunningExt[i] << "\t" << (int)BackwardRunningExt[i] << "\t" << (int)LineBuffer[i] << std::endl;
-//       }
     inLineIt.NextLine();
     }
-
-//  for (int i = 0;i<runningBufSize;i++) 
-//    {
-//    std::cout << std::setprecision(5)  << i << " :       " << (int)ForwardRunningExt[i] << "\t" << (int)BackwardRunningExt[i] << "\t" << (int)LineBuffer[i] << std::endl;
-//    }
-  
 }
 
 template<class TInputImage, class TOutputImage, class TFunction1>
@@ -332,6 +319,7 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
       }
     }
   // finish the last of the block
+  Ext = m_BoundaryValue;
   for (; i < offsets.size(); i++)
     {
     InputImagePixelType V = input->GetPixel(start + offsets[i]);
