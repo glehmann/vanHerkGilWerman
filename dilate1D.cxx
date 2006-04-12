@@ -6,6 +6,7 @@
 #include "itkTimeProbe.h"
 #include <vector>
 #include "itkCommand.h"
+#include "itkNumericTraits.h"
 
 template < class TFilter >
 class ProgressCallback : public itk::Command
@@ -94,7 +95,7 @@ int main(int, char * argv[])
   DilateType::Pointer vDilate = DilateType::New();
   vDilate->SetInput(reader->GetOutput());
   vDilate->SetKernelLength(2*radius+1);
-  
+  vDilate->SetBoundaryValue(itk::NumericTraits<PType>::NonpositiveMin());
   // write 
   typedef itk::ImageFileWriter< IType > WriterType;
   WriterType::Pointer vHwriter = WriterType::New();

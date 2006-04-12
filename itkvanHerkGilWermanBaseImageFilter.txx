@@ -8,6 +8,7 @@
 #include "itkImageLinearIteratorWithIndex.h"
 //#include "itkImageRegionIterator.h"
 #include <iomanip>
+#include <algorithm>
 
 namespace itk {
 
@@ -215,6 +216,7 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
   // correspond to an integral number of blocks because it simplifies
   // the management
   int blocks = Offsets.size()/m_KernelLength;
+  int blocks_rev = blocks;
   int leftovers = Offsets.size() % m_KernelLength;
   int runningBufSize, start_last_block;
   if (leftovers == 0) 
@@ -224,17 +226,17 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
     }
   else
     {
-    runningBufSize = m_KernelLength * (blocks + 1);
+    runningBufSize = m_KernelLength * (blocks + 2);
+    blocks_rev = blocks + 2;  
     start_last_block = blocks * m_KernelLength;
     }
-//  std::cout << "leftovers=" << leftovers << " start_block = " << start_last_block << std::endl;
   // the buffers
   RunningExtType ForwardRunningExt(runningBufSize);
   RunningExtType BackwardRunningExt(runningBufSize);
   // this one will store the pixels so we don't need to get them from
-  // the image a second time
-  RunningExtType LineBuffer(Offsets.size()); 
-
+  // the image a second time - the padding will be filled here
+  RunningExtType LineBuffer(runningBufSize);
+  std::fill(LineBuffer.begin(), LineBuffer.end(), m_BoundaryValue);
   // use a line iterator to find the index at the beginning of each
   // line. Don't iterate along the line - we have already stored the
   // offsets. I'm not sure this is the most efficient way to go, but
@@ -248,7 +250,7 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
     InIndexType start = inLineIt.GetIndex();
 
     forwardExtreme(start, Offsets, input, blocks, ForwardRunningExt, LineBuffer);
-    reverseExtreme(LineBuffer, start_last_block, blocks, BackwardRunningExt);
+    reverseExtreme(LineBuffer, blocks_rev, BackwardRunningExt);
 
     for (int i = 0, j=m_KernelLength/2;i < Offsets.size(); i++, j++)
       {
@@ -291,21 +293,6 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
   // also store the pixel values in the line buffer for quick access
   // when computing the reverse running max
   InputImagePixelType Ext = m_BoundaryValue;
-#if 0
-  for (int i = 0; i < offsets.size(); i++)
-    {
-    // restart the running extreme
-    if ((i % m_KernelLength) == 0) 
-      {
-      Ext = m_BoundaryValue;
-      }
-    InputImagePixelType V = input->GetPixel(start + offsets[i]);
-    lineBuf[i]=V;
-    Ext = Extreme(Ext,V);
-    runningBuf[i] = Ext;
-    }
-#else
-  // slightly messier looking version that should minimize loop complexity
   int i = 0;
   for (int k=0;k<blocks;k++)
     {
@@ -318,7 +305,9 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
       runningBuf[i] = Ext;
       }
     }
-  // finish the last of the block
+//   for (int j = 0;j<runningBuf.size();j++)
+//     std::cout << (int)runningBuf[j] << std::endl;
+  // finish the last of the block that is inside the image
   Ext = m_BoundaryValue;
   for (; i < offsets.size(); i++)
     {
@@ -327,36 +316,30 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
     Ext = Extreme(Ext,V);
     runningBuf[i] = Ext;
     }
-#endif
   // finish the rest
   for (int j = offsets.size();j < runningBuf.size();j++)
     {
+    if ((j % m_KernelLength) == 0) 
+      {
+      Ext = m_BoundaryValue;
+      }
     runningBuf[j] = Ext;
     }
+
+
 }
 
 template<class TInputImage, class TOutputImage, class TFunction1>
 void
 vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
-::reverseExtreme(const RunningExtType lineBuf, const int start_last_block,
+::reverseExtreme(const RunningExtType lineBuf, //const int start_last_block,
 		 const int blocks,
 		 RunningExtType &runningBuf)
 {
   InputImagePixelType Ext = m_BoundaryValue;
-  int LineIdx = start_last_block;
-#if 0
-  for (int i = runningBuf.size() - 1; i >= this->m_KernelLength - 1; i--, LineIdx--) 
-    {
-    if ((LineIdx ) % m_KernelLength == 0)
-      {
-      Ext = m_BoundaryValue;
-      }
-    Ext = Extreme(Ext, lineBuf[LineIdx]);
-    runningBuf[i] = Ext;
-    }
-#else
+  int LineIdx = lineBuf.size() - m_KernelLength;
   int i = runningBuf.size() - 1;
-  for (int k=0;k<blocks;k++)
+  for (int k=0;k<blocks-1;k++)
     {
     Ext = m_BoundaryValue;
     for (int j=0;j<m_KernelLength;j++, LineIdx--, i--)
@@ -366,7 +349,6 @@ vanHerkGilWermanBaseImageFilter<TInputImage, TOutputImage, TFunction1>
       }
     }
   Ext = lineBuf[LineIdx];
-#endif
   // now fill the start of the buffer -- this corresponds to the
   // boundary condition
   for (int j = 0; j < m_KernelLength-1;j++) 

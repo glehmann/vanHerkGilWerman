@@ -129,7 +129,7 @@ private:
 		      const int blocks,
 		      RunningExtType &runningBuf, RunningExtType &lineBuf);
 
-  void reverseExtreme(const RunningExtType lineBuf, const int start_last_block,
+  void reverseExtreme(const RunningExtType lineBuf, //const int start_last_block,
 		      const int blocks, RunningExtType &runningBuf);
 
 

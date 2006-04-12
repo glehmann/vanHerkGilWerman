@@ -3,6 +3,7 @@ PROJECT(vanHerk)
 
 # set the name of the input image used to run the test
 SET(INPUT_IMAGE ${CMAKE_SOURCE_DIR}/images/cthead1.png)
+SET(INPUT_IMAGE2 ${CMAKE_SOURCE_DIR}/images/lena_bw.png)
 
 #include some macros from another file...
 INCLUDE(IJMacros.txt)
@@ -52,7 +53,7 @@ TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 #any tests you can comment out or delete the following line.
 # ADD_TEST(Testname ExecutableToRun arg1 arg2 arg3)
 
-SET(RADS 1 2 3 4 5 6 7 8 9 10 11 12 13)
+SET(RADS 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
 
 FOREACH(NUM ${RADS})
 SET(TNAME dil1D_${NUM})
@@ -65,5 +66,14 @@ ADD_TEST(${TNAME} dilate1D ${INPUT_IMAGE} ${VNAME} ${BNAME} ${NUM})
 ADD_TEST(${CNAME} ${IMAGE_COMPARE} ${VNAME} ${BNAME})
 ENDFOREACH(NUM)
 
-#ADD_TEST(Run check ${INPUT_IMAGE} out.png)
-#ADD_TEST(CompareImage ${IMAGE_COMPARE} out.png ${CMAKE_SOURCE_DIR}/images/test.png)
+FOREACH(NUM ${RADS})
+SET(TNAME dilLen1D_${NUM})
+SET(CNAME checkLendil1D_${NUM})
+
+SET(BNAME outLB_${NUM}.png)
+SET(VNAME outLVH_${NUM}.png)
+
+ADD_TEST(${TNAME} dilate1D ${INPUT_IMAGE2} ${VNAME} ${BNAME} ${NUM})
+ADD_TEST(${CNAME} ${IMAGE_COMPARE} ${VNAME} ${BNAME})
+ENDFOREACH(NUM)
+
